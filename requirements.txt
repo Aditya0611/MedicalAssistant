@@ -1,0 +1,11 @@
+streamlit
+pandas
+kagglehub
+streamlit-mic-recorder
+gTTS
+supabase
+google-generativeai
+groq
+python-dotenv
+SpeechRecognition
+pydub
