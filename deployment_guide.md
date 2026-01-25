@@ -6,8 +6,8 @@ This guide explains how to host your AI Medical Assistant on **Streamlit Communi
 
 ## 🏗️ Step 1: Prepare Your Repository
 1.  **Upload to GitHub**: Create a new repository on [GitHub](https://github.com) and upload all your project files.
-    *   **Files to include**: `python.py`, `database.py`, `calendar_utils.py`, `symptom_analyzer.py`, `voice_utils.py`, `requirements.txt`, and `LICENSE`.
-    *   **🚨 IMPORTANT**: Do **NOT** upload your `.env` file. This contains your private keys.
+    *   **Files to include**: `streamlit_app.py`, `database.py`, `calendar_utils.py`, `symptom_analyzer.py`, `voice_utils.py`, `requirements.txt`, `.gitignore`, and `LICENSE`.
+    *   **🚨 IMPORTANT**: Do **NOT** upload your `.env` file or `credentials.json`. These contain your private keys and are automatically excluded by `.gitignore`.
 2.  **Verify `requirements.txt`**: Ensure the file exists in your repository. It tells the hosting server which libraries to install.
 
 ---
@@ -15,7 +15,7 @@ This guide explains how to host your AI Medical Assistant on **Streamlit Communi
 ## 🚀 Step 2: Host on Streamlit Cloud
 1.  Go to [share.streamlit.io](https://share.streamlit.io/) and sign in with GitHub.
 2.  Click **"New app"**.
-3.  Select your repository, branch (`main`), and set the Main file path to **`python.py`**.
+3.  Select your repository, branch (`main`), and set the Main file path to **`streamlit_app.py`**.
 4.  **Before clicking Deploy**, click on **"Advanced settings..."**.
 
 ---
