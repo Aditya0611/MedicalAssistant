@@ -1,15 +1,32 @@
 import os
+import streamlit as st
 from datetime import datetime
 from dotenv import load_dotenv
 from google import genai
 from google.genai import types
 from groq import Groq
 
+# Load environment variables (Local)
 load_dotenv()
 
+def get_secret(key, default=None):
+    """Robustly fetch secrets from Streamlit or Environment."""
+    try:
+        if key in st.secrets:
+            return st.secrets[key]
+    except Exception:
+        pass
+    return os.environ.get(key, default)
+
 # Configure Clients
-gemini_client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
-groq_client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
+gemini_key = get_secret("GEMINI_API_KEY")
+groq_key = get_secret("GROQ_API_KEY")
+
+gemini_client = genai.Client(api_key=gemini_key) if gemini_key else None
+groq_client = Groq(api_key=groq_key) if groq_key else None
+
+if not gemini_key or not groq_key:
+    st.warning("⚠️ AI API keys missing. AI features will be limited.")
 
 # Use Groq as primary, Gemini as secondary
 GROQ_MODEL = "llama-3.3-70b-versatile"
@@ -44,6 +61,7 @@ If the symptoms are unclear or too vague, recommend "Primary Care Doctor"."""
 
         # Try Groq first
         try:
+            if not groq_client: raise Exception("Groq client not initialized")
             response = groq_client.chat.completions.create(
                 model=GROQ_MODEL,
                 messages=[{"role": "user", "content": prompt}],
@@ -52,6 +70,7 @@ If the symptoms are unclear or too vague, recommend "Primary Care Doctor"."""
             result_text = response.choices[0].message.content.strip()
         except Exception as e:
             print(f"Groq failed, falling back to Gemini: {e}")
+            if not gemini_client: return fallback_keyword_match(user_input)
             response = gemini_client.models.generate_content(
                 model=GEMINI_MODEL,
                 contents=prompt
@@ -154,6 +173,7 @@ Respond ONLY with a valid JSON object:
 
         # Try Groq First
         try:
+            if not groq_client: raise Exception("Groq client not initialized")
             response = groq_client.chat.completions.create(
                 model=GROQ_MODEL,
                 messages=[{"role": "user", "content": prompt}],
@@ -211,6 +231,7 @@ Respond ONLY with a valid JSON object."""
 
         # Try Groq First
         try:
+            if not groq_client: raise Exception("Groq client not initialized")
             response = groq_client.chat.completions.create(
                 model=GROQ_MODEL,
                 messages=[{"role": "user", "content": prompt}],

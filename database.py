@@ -1,18 +1,35 @@
 import os
+import streamlit as st
 from supabase import create_client, Client
 from dotenv import load_dotenv
 
-# Load environment variables
+# Load environment variables (Local)
 load_dotenv()
 
-url: str = os.environ.get("SUPABASE_URL")
-key: str = os.environ.get("SUPABASE_KEY")
+def get_secret(key, default=None):
+    """Robustly fetch secrets from Streamlit or Environment."""
+    try:
+        if key in st.secrets:
+            return st.secrets[key]
+    except Exception:
+        pass
+    return os.environ.get(key, default)
 
-supabase: Client = create_client(url, key)
+url = get_secret("SUPABASE_URL")
+key = get_secret("SUPABASE_KEY")
+
+# Create client only if credentials are found
+if url and key:
+    supabase: Client = create_client(url, key)
+else:
+    supabase = None
+    st.warning("⚠️ SUPABASE_URL or SUPABASE_KEY not found. Please add them to your Streamlit Secrets.")
 
 
 def test_connection():
     """Tests the connection to the Supabase appointments table."""
+    if not supabase:
+        return False, "Supabase client not initialized. Check your secrets."
     try:
         supabase.table("appointments").select("id").limit(1).execute()
         return True, None
