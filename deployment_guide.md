@@ -21,14 +21,17 @@ This guide explains how to host your AI Medical Assistant on **Streamlit Communi
 ---
 
 ## 🔐 Step 3: Configure Secrets (Essential)
-Streamlit Cloud uses a "Secrets" manager instead of a `.env` file. Paste the contents of your local `.env` file into the **Secrets box** in this format:
+Streamlit Cloud uses a "Secrets" manager instead of a `.env` file. Paste your credentials into the **Secrets box** exactly in this format:
 
 ```toml
-GEMINI_API_KEY = "your_key_here"
-GROQ_API_KEY = "your_key_here"
-SUPABASE_URL = "your_supabase_url"
-SUPABASE_KEY = "your_supabase_anon_key"
+GEMINI_API_KEY = "your_gemini_key"
+GROQ_API_KEY = "your_groq_key"
+SUPABASE_URL = "https://your-project.supabase.co"
+SUPABASE_KEY = "your-anon-role-key"
 ```
+
+> [!IMPORTANT]
+> If you see a warning saying `SUPABASE_URL not found`, it means this step was skipped or the keys were entered incorrectly. Double-check for extra spaces or missing quotes.
 
 *Click **Save**, then click **Deploy**!*
 
