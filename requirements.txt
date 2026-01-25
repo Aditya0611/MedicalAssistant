@@ -4,7 +4,7 @@ kagglehub
 streamlit-mic-recorder
 gTTS
 supabase
-google-generativeai
+google-genai
 groq
 python-dotenv
 SpeechRecognition
