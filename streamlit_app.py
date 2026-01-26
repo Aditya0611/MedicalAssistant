@@ -46,7 +46,15 @@ def send_email(to_email, subject, body):
         st.error(f"Error sending email: {e}")
 
 def validate_mobile(mobile):
-    return re.match(r'^\d{10}$', mobile) is not None
+    # Check if exactly 10 digits and only digits
+    return bool(re.match(r'^\d{10}$', mobile))
+
+def validate_name(name):
+    if not name or len(name.strip()) < 2:
+        return False
+    if name[0].isdigit():
+        return False
+    return True
 
 def parse_date(date_str):
     for fmt in ("%Y-%m-%d", "%d-%m-%Y", "%m/%d/%Y", "%d/%m/%Y"):
@@ -139,7 +147,7 @@ def ask_step_question(step):
         speak_text(msg)
 
 def inject_custom_css():
-    css = """<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet"><style>@keyframes meshGradient { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }@keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.4); transform: scale(1); } 70% { box-shadow: 0 0 0 20px rgba(99, 102, 241, 0); transform: scale(1.05); } 100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0); transform: scale(1); } }.stApp { background-color: #030712; background-image: radial-gradient(circle at 20% 20%, rgba(79, 70, 229, 0.15) 0%, transparent 50%), radial-gradient(circle at 80% 80%, rgba(99, 102, 241, 0.15) 0%, transparent 50%), radial-gradient(circle at 50% 50%, rgba(31, 41, 55, 0.2) 0%, transparent 70%); background-size: 200% 200%; animation: meshGradient 20s ease infinite; background-attachment: fixed; font-family: 'Inter', sans-serif; }.title { font-family: 'Outfit', sans-serif; font-size: 46px; font-weight: 700; background: linear-gradient(135deg, #ffffff 0%, #818cf8 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-align: center; padding: 40px; filter: drop-shadow(0 4px 12px rgba(0,0,0,0.4)); }.stChatMessage { border-radius: 24px !important; padding: 1.5rem !important; border: 1px solid rgba(255, 255, 255, 0.1) !important; background: rgba(15, 23, 42, 0.8) !important; backdrop-filter: blur(30px); margin-bottom: 1.5rem !important; }.stChatMessage [data-testid="stChatMessageAvatar"] + div > div:first-child { font-size: 0 !important; color: transparent !important; line-height: 0 !important; height: 0 !important; margin: 0 !important; padding: 0 !important; }.stChatMessage p, .stChatMessage li, .stChatMessage [data-testid="chat-message-content"] span, .stChatMessage [data-testid="chat-message-content"] div { color: #ffffff !important; font-family: 'Inter', sans-serif !important; font-size: 1.05rem !important; line-height: 1.6 !important; text-shadow: 0px 1px 3px rgba(0,0,0,0.4) !important; }.stChatMessage [data-testid="stChatMessageAvatar"] { margin-right: 15px !important; }[data-testid="stSidebar"] { background-color: rgba(3, 7, 20, 0.98) !important; border-right: 1px solid rgba(255,255,255,0.1); }.dashboard-item { background: rgba(31, 41, 55, 0.6); padding: 20px; border-radius: 20px; margin-bottom: 15px; border-left: 5px solid #6366f1; transition: 0.3s; }.dashboard-item:hover { transform: translateX(5px); background: rgba(31, 41, 55, 0.8); }.assistant-container { background: rgba(15, 23, 42, 0.9) !important; backdrop-filter: blur(50px); border-radius: 40px; padding: 40px; border: 1px solid rgba(99, 102, 241, 0.4); margin: 30px 0; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }.assistant-header { color: #a5b4fc !important; font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 1.4rem; letter-spacing: 4px; margin-bottom: 30px; text-transform: uppercase; text-shadow: 0 0 20px rgba(99, 102, 241, 0.5); }.stMicRecorder { background: transparent !important; display: flex !important; justify-content: center !important; } .stMicRecorder button { background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%) !important; color: white !important; border: 1px solid rgba(255,255,255,0.2) !important; padding: 15px 40px !important; border-radius: 100px !important; font-family: 'Outfit', sans-serif !important; font-weight: 700 !important; font-size: 1.1rem !important; text-transform: uppercase !important; letter-spacing: 2px !important; transition: 0.5s all cubic-bezier(0.175, 0.885, 0.32, 1.275) !important; box-shadow: 0 15px 35px rgba(79, 70, 229, 0.4) !important; cursor: pointer !important; } .stMicRecorder button:hover { transform: scale(1.08) translateY(-5px) !important; box-shadow: 0 20px 45px rgba(99, 102, 241, 0.6) !important; background: linear-gradient(135deg, #818cf8 0%, #6366f1 100%) !important; } .stMicRecorder button:active { transform: scale(0.92) !important; } .stMicRecorder button div { color: white !important; font-weight: 700 !important; } .stMicRecorder button [data-recording="true"], .stMicRecorder button:has(div:contains("Stop")) { background: linear-gradient(135deg, #ff4b2b 0%, #ff416c 100%) !important; animation: pulse 1.5s infinite !important; border: 1px solid rgba(255,255,255,0.4) !important; }@media (max-width: 768px) { .title { font-size: 32px !important; padding: 20px !important; } .stChatMessage { padding: 1.25rem !important; border-radius: 20px !important; } .stChatMessage p, .stChatMessage li { font-size: 0.95rem !important; } .assistant-container { padding: 25px !important; border-radius: 30px !important; } .assistant-header { font-size: 1.1rem !important; } }[data-testid="stBottom"] { background-color: transparent !important; }[data-testid="stBottom"] > div { background-color: transparent !important; border: none !important; }div[data-testid="stChatInput"] { background-color: rgba(255, 255, 255, 0.95) !important; border: 2px solid #6366f1 !important; border-radius: 20px !important; box-shadow: 0 4px 15px rgba(0,0,0,0.2) !important; }.stChatInput textarea { color: #0f172a !important; font-weight: 500 !important; }.stChatInput textarea::placeholder { color: #64748b !important; }::-webkit-scrollbar { width: 6px; } ::-webkit-scrollbar-thumb { background: rgba(99, 102, 241, 0.3); border-radius: 10px; }#MainMenu, header, footer {visibility: hidden;}</style>"""
+    css = """<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet"><style>@keyframes meshGradient { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }@keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.4); transform: scale(1); } 70% { box-shadow: 0 0 0 20px rgba(99, 102, 241, 0); transform: scale(1.05); } 100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0); transform: scale(1); } }.stApp { background-color: #030712; background-image: radial-gradient(circle at 20% 20%, rgba(79, 70, 229, 0.15) 0%, transparent 50%), radial-gradient(circle at 80% 80%, rgba(99, 102, 241, 0.15) 0%, transparent 50%), radial-gradient(circle at 50% 50%, rgba(31, 41, 55, 0.2) 0%, transparent 70%); background-size: 200% 200%; animation: meshGradient 20s ease infinite; background-attachment: fixed; font-family: 'Inter', sans-serif; }.title { font-family: 'Outfit', sans-serif; font-size: 46px; font-weight: 700; background: linear-gradient(135deg, #ffffff 0%, #818cf8 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-align: center; padding: 40px; filter: drop-shadow(0 4px 12px rgba(0,0,0,0.4)); }.stChatMessage { border-radius: 24px !important; padding: 1.5rem !important; border: 1px solid rgba(255, 255, 255, 0.1) !important; background: rgba(15, 23, 42, 0.8) !important; backdrop-filter: blur(30px); margin-bottom: 1.5rem !important; }.stChatMessage [data-testid="stChatMessageAvatar"] + div > div:first-child { font-size: 0 !important; color: transparent !important; line-height: 0 !important; height: 0 !important; margin: 0 !important; padding: 0 !important; }.stChatMessage p, .stChatMessage li, .stChatMessage [data-testid="chat-message-content"] span, .stChatMessage [data-testid="chat-message-content"] div { color: #ffffff !important; font-family: 'Inter', sans-serif !important; font-size: 1.05rem !important; line-height: 1.6 !important; text-shadow: 0px 1px 3px rgba(0,0,0,0.4) !important; }.stChatMessage [data-testid="stChatMessageAvatar"] { margin-right: 15px !important; }[data-testid="stSidebar"] { background-color: rgba(3, 7, 20, 0.98) !important; border-right: 1px solid rgba(255,255,255,0.1); }.dashboard-item { background: rgba(31, 41, 55, 0.6); padding: 20px; border-radius: 20px; margin-bottom: 15px; border-left: 5px solid #6366f1; transition: 0.3s; }.dashboard-item:hover { transform: translateX(5px); background: rgba(31, 41, 55, 0.8); }.assistant-container { background: rgba(15, 23, 42, 0.9) !important; backdrop-filter: blur(50px); border-radius: 40px; padding: 40px; border: 1px solid rgba(99, 102, 241, 0.4); margin: 30px 0; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }.assistant-header { color: #a5b4fc !important; font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 1.4rem; letter-spacing: 4px; margin-bottom: 30px; text-transform: uppercase; text-shadow: 0 0 20px rgba(99, 102, 241, 0.5); }.stMicRecorder { background: transparent !important; display: flex !important; justify-content: center !important; } .stMicRecorder button { background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%) !important; color: white !important; border: 1px solid rgba(255,255,255,0.2) !important; padding: 12px 30px !important; border-radius: 100px !important; font-family: 'Outfit', sans-serif !important; font-weight: 700 !important; font-size: 1rem !important; text-transform: uppercase !important; letter-spacing: 2px !important; transition: 0.4s all cubic-bezier(0.175, 0.885, 0.32, 1.275) !important; box-shadow: 0 10px 25px rgba(79, 70, 229, 0.3) !important; cursor: pointer !important; width: 100% !important; margin-top: 10px !important; } .stMicRecorder button:hover { transform: scale(1.02) translateY(-2px) !important; box-shadow: 0 15px 30px rgba(99, 102, 241, 0.5) !important; background: linear-gradient(135deg, #818cf8 0%, #6366f1 100%) !important; } .stMicRecorder button:active { transform: scale(0.95) !important; } .stMicRecorder button div { color: white !important; font-weight: 700 !important; } .stMicRecorder button [data-recording="true"], .stMicRecorder button:has(div:contains("Stop")) { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important; animation: pulse 1.5s infinite !important; border: 1px solid rgba(255,255,255,0.4) !important; }@media (max-width: 768px) { .title { font-size: 28px !important; padding: 15px !important; } .stChatMessage { padding: 1rem !important; border-radius: 16px !important; margin-bottom: 1rem !important; } .stChatMessage p, .stChatMessage li { font-size: 0.9rem !important; } .assistant-container { padding: 20px !important; border-radius: 20px !important; margin: 15px 0 !important; } .assistant-header { font-size: 1rem !important; letter-spacing: 2px !important; } .stMicRecorder button { padding: 10px 25px !important; font-size: 0.9rem !important; } }[data-testid="stBottom"] { background-color: transparent !important; }[data-testid="stBottom"] > div { background-color: transparent !important; border: none !important; }div[data-testid="stChatInput"] { background-color: rgba(255, 255, 255, 0.95) !important; border: 2px solid #6366f1 !important; border-radius: 20px !important; box-shadow: 0 4px 15px rgba(0,0,0,0.2) !important; }.stChatInput textarea { color: #0f172a !important; font-weight: 500 !important; }.stChatInput textarea::placeholder { color: #64748b !important; }::-webkit-scrollbar { width: 6px; } ::-webkit-scrollbar-thumb { background: rgba(99, 102, 241, 0.3); border-radius: 10px; }#MainMenu, header, footer {visibility: hidden;}</style>"""
     st.markdown(css, unsafe_allow_html=True)
 
 def handle_chat():
@@ -156,24 +164,36 @@ def handle_chat():
 
     # 1. SIDEBAR - PATIENT PROFILE
     with st.sidebar:
-        st.markdown('<div style="text-align: center; padding: 20px;"><h2 style="color: #6366f1; font-family: \'Outfit\', sans-serif;">🏥 Patient Profile</h2></div>', unsafe_allow_html=True)
+        st.markdown('<div style="text-align: center; padding: 20px;"><h2 style="color: #6366f1; font-family: \'Outfit\', sans-serif;">🏥 Patient Dashboard</h2></div>', unsafe_allow_html=True)
         det = st.session_state["appointment_details"]
         
         # Display Cards with Explicit White Text
         st.markdown(f'''
             <div class="dashboard-item" style="color: white;">
-                <div style="font-size: 0.8rem; color: #94a3b8;">👤 Full Name</div>
+                <div style="font-size: 0.8rem; color: #94a3b8; text-transform: uppercase;">Patient Name</div>
                 <div style="font-size: 1.1rem; font-weight: 600; color: #ffffff;">{det.get("name", "---")}</div>
             </div>
         ''', unsafe_allow_html=True)
         
         c1, c2 = st.columns(2)
-        with c1: st.markdown(f'<div class="dashboard-item" style="padding: 12px; color: white;"><div style="font-size: 0.7rem; color: #94a3b8;">📅 AGE</div><div style="color: white;">{det.get("age", "--")}</div></div>', unsafe_allow_html=True)
-        with c2: st.markdown(f'<div class="dashboard-item" style="padding: 12px; color: white;"><div style="font-size: 0.7rem; color: #94a3b8;">🚻 GENDER</div><div style="color: white;">{det.get("gender", "--")}</div></div>', unsafe_allow_html=True)
+        with c1: st.markdown(f'<div class="dashboard-item" style="padding: 12px; color: white;"><div style="font-size: 0.7rem; color: #94a3b8; text-transform: uppercase;">Age</div><div style="color: white;">{det.get("age", "--")}</div></div>', unsafe_allow_html=True)
+        with c2: st.markdown(f'<div class="dashboard-item" style="padding: 12px; color: white;"><div style="font-size: 0.7rem; color: #94a3b8; text-transform: uppercase;">Gender</div><div style="color: white;">{det.get("gender", "--")}</div></div>', unsafe_allow_html=True)
         
-        st.markdown(f'<div class="dashboard-item" style="border-left-color: #818cf8; color: white;"><div style="font-size: 0.8rem; color: #94a3b8;">👨‍⚕️ Specialist</div><div style="color: #a5b4fc; font-weight: 600;">{det.get("selected_doctor", "Waiting...")}</div></div>', unsafe_allow_html=True)
-        st.markdown(f'<div class="dashboard-item" style="color: white;"><div style="font-size: 0.8rem; color: #94a3b8;">📌 Schedule</div><div style="color: white;">📅 {det.get("appointment_date", "Not Set")}</div><div style="color: white;">🕒 {det.get("appointment_time", "Not Set")}</div></div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="dashboard-item" style="border-left-color: #818cf8; color: white;"><div style="font-size: 0.8rem; color: #94a3b8; text-transform: uppercase;">Medical Specialist</div><div style="color: #a5b4fc; font-weight: 600;">{det.get("selected_doctor", "Awaiting Analysis...")}</div></div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="dashboard-item" style="color: white;"><div style="font-size: 0.8rem; color: #94a3b8; text-transform: uppercase;">Appointment</div><div style="color: white;">📅 {det.get("appointment_date", "Not Set")}</div><div style="color: white;">🕒 {det.get("appointment_time", "Not Set")}</div></div>', unsafe_allow_html=True)
         
+        # --- VOICE RECORDER IN SIDEBAR ---
+        st.markdown('<div style="background: rgba(31, 41, 55, 0.4); padding: 15px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); margin-top: 20px;"><div class="assistant-header" style="font-size: 0.75rem; margin-bottom: 10px; text-align: center;">🤖 AI Voice Assistant</div>', unsafe_allow_html=True)
+        audio = mic_recorder(start_prompt="🔴 Start Recording", stop_prompt="✅ Stop & Process", key=f"rec_{st.session_state['audio_key_index']}")
+        st.markdown('</div>', unsafe_allow_html=True)
+        if audio:
+            curr_aid = hashlib.md5(audio['bytes']).hexdigest()
+            if st.session_state.get("last_audio_id") != curr_aid:
+                with st.spinner("Analyzing..."):
+                    txt = voice_utils.transcribe_audio(audio['bytes'])
+                    if txt:
+                        st.session_state["pending_input"] = txt; st.session_state["last_audio_id"] = curr_aid; st.session_state["audio_key_index"] += 1; st.rerun()
+
         if st.button("Reset Session", use_container_width=True):
             st.session_state["messages"] = []; st.session_state["appointment_details"] = {}; st.session_state["step"] = None; st.rerun()
 
@@ -191,19 +211,9 @@ def handle_chat():
         speak_text(welcome_msg)
         st.rerun()
 
-    # 4. VOICE COMPONENT
-    if st.session_state["step"] is not None:
-        with st.container():
-            st.markdown('<div class="assistant-container"><div class="assistant-header">🤖 Voice Assistant Active</div>', unsafe_allow_html=True)
-            audio = mic_recorder(start_prompt="🔴 Start Listening", stop_prompt="✅ Process Message", key=f"rec_{st.session_state['audio_key_index']}")
-            st.markdown('</div>', unsafe_allow_html=True)
-            if audio:
-                curr_aid = hashlib.md5(audio['bytes']).hexdigest()
-                if st.session_state.get("last_audio_id") != curr_aid:
-                    with st.spinner("Analyzing..."):
-                        txt = voice_utils.transcribe_audio(audio['bytes'])
-                        if txt:
-                            st.session_state["pending_input"] = txt; st.session_state["last_audio_id"] = curr_aid; st.session_state["audio_key_index"] += 1; st.rerun()
+    # 4. VOICE COMPONENT (RESIZED FOR MAIN FLOW IF NEEDED)
+    # Note: Already handled in Sidebar above, but keeping a placeholder or optional floating one
+    pass
 
     # 5. INPUT HANDLING
     user_input = st.chat_input("Type or say anything...")
@@ -231,18 +241,32 @@ def handle_chat():
             elif n == "4": st.session_state["step"] = "medical_info"; st.session_state["messages"].append({"role": "assistant", "content": "What disease?"}); st.rerun()
             elif n == "5": st.session_state["messages"].append({"role": "assistant", "content": "Goodbye!"}); st.session_state["step"] = None
         elif step == "name":
-            st.session_state["appointment_details"]["name"] = user_input
-            st.session_state["step"] = get_next_missing_field(); ask_step_question(st.session_state["step"]); st.rerun()
+            if validate_name(user_input):
+                st.session_state["appointment_details"]["name"] = user_input
+                st.session_state["step"] = get_next_missing_field(); ask_step_question(st.session_state["step"]); st.rerun()
+            else:
+                st.error("Invalid name. Name cannot be a single alphabet or start with a numeric value.")
         elif step == "email":
             st.session_state["appointment_details"]["email"] = user_input.lower().replace(" ", "").strip()
             st.session_state["step"] = get_next_missing_field(); ask_step_question(st.session_state["step"]); st.rerun()
         elif step == "mobile":
+            # Strip anything that is not a digit
             c = re.sub(r'\D', '', user_input)
-            if validate_mobile(c): st.session_state["appointment_details"]["mobile"] = c; st.session_state["step"] = get_next_missing_field(); ask_step_question(st.session_state["step"]); st.rerun()
-            else: st.error("Invalid mobile number.")
+            # If user entered letters, they will be stripped, but we should also check if the raw input had letters
+            if any(char.isalpha() for char in user_input):
+                st.error("Phone number must be a numeric value.")
+            elif validate_mobile(c): 
+                st.session_state["appointment_details"]["mobile"] = c
+                st.session_state["step"] = get_next_missing_field(); ask_step_question(st.session_state["step"]); st.rerun()
+            else: 
+                st.error("Invalid mobile number. Must be 10 digits.")
         elif step == "age":
             c = re.sub(r'\D', '', user_input)
-            if c.isdigit(): st.session_state["appointment_details"]["age"] = c; st.session_state["step"] = get_next_missing_field(); ask_step_question(st.session_state["step"]); st.rerun()
+            if c.isdigit() and int(c) > 0: 
+                st.session_state["appointment_details"]["age"] = c
+                st.session_state["step"] = get_next_missing_field(); ask_step_question(st.session_state["step"]); st.rerun()
+            else:
+                st.error("Age must be a numeric value greater than 0.")
         elif step == "gender":
             g = user_input.lower()
             res = "Male" if "mal" in g or "mail" in g else "Female" if "fem" in g else "Transgender" if "trans" in g else None
@@ -253,7 +277,8 @@ def handle_chat():
                 ana = symptom_analyzer.analyze_symptom(s)
                 spec = ana["specialty"]
                 st.session_state["messages"].append({"role": "assistant", "content": f"Recommended Specialty: **{spec}**\n\n{ana['reasoning']}"})
-                docs = doctors_by_specialty.get(spec, ["General Doctor"])
+                # Limit to top 5 doctors to prevent data breach/overwhelming list
+                docs = doctors_by_specialty.get(spec, ["General Doctor"])[:5]
                 st.session_state["appointment_details"]["docs"] = docs
                 st.session_state["step"] = "select_doctor"
                 st.session_state["messages"].append({"role": "assistant", "content": "Select doctor:\n" + "\n".join([f"{i+1}. {d}" for i, d in enumerate(docs)])})
