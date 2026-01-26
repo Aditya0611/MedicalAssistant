@@ -9,3 +9,5 @@ groq
 python-dotenv
 SpeechRecognition
 pydub
+google-api-python-client
+google-auth
