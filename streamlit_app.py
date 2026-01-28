@@ -89,7 +89,9 @@ def is_time_slot_available(date_str, time_str, doctor):
 def speak_text(text):
     if not text: return
     try:
-        tts = gTTS(text=text, lang='en', tld='co.in')
+        # Normalize text for speech (e.g. remove numbering for cleaner speech)
+        clean_text = re.sub(r'^\d+\.\s*', '', text, flags=re.MULTILINE)
+        tts = gTTS(text=clean_text, lang='en', tld='co.in')
         fd, tmp_path = tempfile.mkstemp(suffix=".mp3")
         os.close(fd)
         try:
@@ -97,7 +99,8 @@ def speak_text(text):
             with open(tmp_path, "rb") as f:
                 data = f.read()
                 b64 = base64.b64encode(data).decode()
-                md = f'<audio autoplay="true"><source src="data:audio/mp3;base64,{b64}" type="audio/mp3"></audio>'
+                # Use a unique key for the audio element to force re-render if needed
+                md = f'<audio autoplay="true" style="display:none;"><source src="data:audio/mp3;base64,{b64}" type="audio/mp3"></audio>'
                 st.markdown(md, unsafe_allow_html=True)
         finally:
             if os.path.exists(tmp_path): os.remove(tmp_path)
@@ -131,20 +134,21 @@ def is_complex_input(text, current_step=None):
 
 def ask_step_question(step):
     questions = {
-        "name": "What's your full name?",
-        "email": "What's your email address? (You can spell it out letter by letter)",
-        "mobile": "What's your mobile number?",
-        "age": "What's your age?",
-        "gender": "What's your gender? (Male, Female, or Transgender)",
-        "symptoms": "What symptoms are you having?",
-        "appointment_date": "When would you like to visit? (e.g., tomorrow)",
-        "appointment_time": "What time? (e.g., 2 PM)",
-        "confirm_appointment": "Ready to book?"
+        "name": "What is your full name?",
+        "email": "What is your email address?",
+        "mobile": "What is your mobile number? Please speak only digits.",
+        "age": "What is your age?",
+        "gender": "What is your gender? Male, Female, or Transgender?",
+        "symptoms": "Please describe the symptoms you are experiencing.",
+        "appointment_date": "On which date would you like to visit?",
+        "appointment_time": "At what time would you prefer your appointment?",
+        "confirm_appointment": "Do you want to confirm this booking? Say yes or no."
     }
     msg = questions.get(step)
     if msg and (not st.session_state["messages"] or st.session_state["messages"][-1]["content"] != msg):
         st.session_state["messages"].append({"role": "assistant", "content": msg})
-        speak_text(msg)
+        # Store in session state to trigger TTS at the end of the next render
+        st.session_state["to_speak"] = msg
 
 def inject_custom_css():
     css = """<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet"><style>@keyframes meshGradient { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }@keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.4); transform: scale(1); } 70% { box-shadow: 0 0 0 20px rgba(99, 102, 241, 0); transform: scale(1.05); } 100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0); transform: scale(1); } }.stApp { background-color: #030712; background-image: radial-gradient(circle at 20% 20%, rgba(79, 70, 229, 0.15) 0%, transparent 50%), radial-gradient(circle at 80% 80%, rgba(99, 102, 241, 0.15) 0%, transparent 50%), radial-gradient(circle at 50% 50%, rgba(31, 41, 55, 0.2) 0%, transparent 70%); background-size: 200% 200%; animation: meshGradient 20s ease infinite; background-attachment: fixed; font-family: 'Inter', sans-serif; }.title { font-family: 'Outfit', sans-serif; font-size: 46px; font-weight: 700; background: linear-gradient(135deg, #ffffff 0%, #818cf8 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-align: center; padding: 40px; filter: drop-shadow(0 4px 12px rgba(0,0,0,0.4)); }.stChatMessage { border-radius: 24px !important; padding: 1.5rem !important; border: 1px solid rgba(255, 255, 255, 0.1) !important; background: rgba(15, 23, 42, 0.8) !important; backdrop-filter: blur(30px); margin-bottom: 1.5rem !important; }.stChatMessage [data-testid="stChatMessageAvatar"] + div > div:first-child { font-size: 0 !important; color: transparent !important; line-height: 0 !important; height: 0 !important; margin: 0 !important; padding: 0 !important; }.stChatMessage p, .stChatMessage li, .stChatMessage [data-testid="chat-message-content"] span, .stChatMessage [data-testid="chat-message-content"] div { color: #ffffff !important; font-family: 'Inter', sans-serif !important; font-size: 1.05rem !important; line-height: 1.6 !important; text-shadow: 0px 1px 3px rgba(0,0,0,0.4) !important; }.stChatMessage [data-testid="stChatMessageAvatar"] { margin-right: 15px !important; }[data-testid="stSidebar"] { background-color: rgba(3, 7, 20, 0.98) !important; border-right: 1px solid rgba(255,255,255,0.1); }.dashboard-item { background: rgba(31, 41, 55, 0.6); padding: 20px; border-radius: 20px; margin-bottom: 15px; border-left: 5px solid #6366f1; transition: 0.3s; }.dashboard-item:hover { transform: translateX(5px); background: rgba(31, 41, 55, 0.8); }.assistant-container { background: rgba(15, 23, 42, 0.9) !important; backdrop-filter: blur(50px); border-radius: 40px; padding: 40px; border: 1px solid rgba(99, 102, 241, 0.4); margin: 30px 0; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }.assistant-header { color: #a5b4fc !important; font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 1.4rem; letter-spacing: 4px; margin-bottom: 30px; text-transform: uppercase; text-shadow: 0 0 20px rgba(99, 102, 241, 0.5); }.stMicRecorder { background: transparent !important; display: flex !important; justify-content: center !important; } .stMicRecorder button { background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%) !important; color: white !important; border: 1px solid rgba(255,255,255,0.2) !important; padding: 12px 30px !important; border-radius: 100px !important; font-family: 'Outfit', sans-serif !important; font-weight: 700 !important; font-size: 1rem !important; text-transform: uppercase !important; letter-spacing: 2px !important; transition: 0.4s all cubic-bezier(0.175, 0.885, 0.32, 1.275) !important; box-shadow: 0 10px 25px rgba(79, 70, 229, 0.3) !important; cursor: pointer !important; width: 100% !important; margin-top: 10px !important; } .stMicRecorder button:hover { transform: scale(1.02) translateY(-2px) !important; box-shadow: 0 15px 30px rgba(99, 102, 241, 0.5) !important; background: linear-gradient(135deg, #818cf8 0%, #6366f1 100%) !important; } .stMicRecorder button:active { transform: scale(0.95) !important; } .stMicRecorder button div { color: white !important; font-weight: 700 !important; } .stMicRecorder button [data-recording="true"], .stMicRecorder button:has(div:contains("Stop")) { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important; animation: pulse 1.5s infinite !important; border: 1px solid rgba(255,255,255,0.4) !important; }@media (max-width: 768px) { .title { font-size: 28px !important; padding: 15px !important; } .stChatMessage { padding: 1rem !important; border-radius: 16px !important; margin-bottom: 1rem !important; } .stChatMessage p, .stChatMessage li { font-size: 0.9rem !important; } .assistant-container { padding: 20px !important; border-radius: 20px !important; margin: 15px 0 !important; } .assistant-header { font-size: 1rem !important; letter-spacing: 2px !important; } .dashboard-item { padding: 12px 15px !important; margin-bottom: 10px !important; border-radius: 15px !important; } .stMicRecorder button { padding: 8px 20px !important; font-size: 0.85rem !important; } }[data-testid="stBottom"] { background-color: transparent !important; }[data-testid="stBottom"] > div { background-color: transparent !important; border: none !important; }div[data-testid="stChatInput"] { background-color: rgba(255, 255, 255, 0.95) !important; border: 2px solid #6366f1 !important; border-radius: 20px !important; box-shadow: 0 4px 15px rgba(0,0,0,0.2) !important; }.stChatInput textarea { color: #0f172a !important; font-weight: 500 !important; }.stChatInput textarea::placeholder { color: #64748b !important; }::-webkit-scrollbar { width: 6px; } ::-webkit-scrollbar-thumb { background: rgba(99, 102, 241, 0.3); border-radius: 10px; }#MainMenu, header, footer {visibility: hidden;}</style>"""
@@ -201,20 +205,38 @@ def handle_chat():
             st.session_state["messages"].append({"role": "assistant", "content": welcome_msg})
             st.session_state["messages"].append({"role": "assistant", "content": options_msg})
             st.session_state["step"] = "options"
-            speak_text(welcome_msg)
+            st.session_state["to_speak"] = welcome_msg + ". " + options_msg
             st.rerun()
 
         # 4. VOICE COMPONENT (ALWAYS ABOVE CHAT INPUT)
-        st.markdown('<div style="background: rgba(31, 41, 55, 0.4); padding: 15px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); margin-top: 20px; max-width: 400px; margin-left: auto; margin-right: auto;"><div class="assistant-header" style="font-size: 0.75rem; margin-bottom: 10px; text-align: center;">🤖 AI Voice Assistant</div>', unsafe_allow_html=True)
-        audio = mic_recorder(start_prompt="🔴 Start Recording", stop_prompt="✅ Stop & Process", key=f"rec_{st.session_state['audio_key_index']}")
-        st.markdown('</div>', unsafe_allow_html=True)
-        if audio:
-            curr_aid = hashlib.md5(audio['bytes']).hexdigest()
-            if st.session_state.get("last_audio_id") != curr_aid:
-                with st.spinner("Analyzing..."):
-                    txt = voice_utils.transcribe_audio(audio['bytes'])
-                    if txt:
-                        st.session_state["pending_input"] = txt; st.session_state["last_audio_id"] = curr_aid; st.session_state["audio_key_index"] += 1; st.rerun()
+        with st.container():
+            st.markdown("""
+                <div style="background: rgba(31, 41, 55, 0.3); padding: 15px; border-radius: 20px; border: 1px solid rgba(99, 102, 241, 0.2); margin-top: 10px; margin-bottom: 5px;">
+                    <div style="color: #a5b4fc; font-size: 0.85rem; font-weight: 600; text-align: center; margin-bottom: 8px;">🎙️ VOICE COMMANDS</div>
+                    <div style="color: #94a3b8; font-size: 0.75rem; text-align: center; line-height: 1.4;">
+                        Click <b>Record</b>, speak clearly, and click <b>Stop</b> to send.<br>
+                        "I want to book", "My name is...", "I have a headache"
+                    </div>
+                </div>
+            """, unsafe_allow_html=True)
+            
+            audio = mic_recorder(
+                start_prompt="🔴 Start Recording", 
+                stop_prompt="✅ Stop & Process", 
+                key=f"rec_{st.session_state['audio_key_index']}",
+                use_container_width=True
+            )
+            
+            if audio:
+                curr_aid = hashlib.md5(audio['bytes']).hexdigest()
+                if st.session_state.get("last_audio_id") != curr_aid:
+                    with st.spinner("Analyzing your voice..."):
+                        txt = voice_utils.transcribe_audio(audio['bytes'])
+                        if txt:
+                            st.session_state["pending_input"] = txt
+                            st.session_state["last_audio_id"] = curr_aid
+                            st.session_state["audio_key_index"] += 1
+                            st.rerun()
 
         # 5. INPUT HANDLING (Inside col_chat)
         user_input = st.chat_input("Type or say anything...")
@@ -337,6 +359,11 @@ def main():
     inject_custom_css()
     st.markdown('<div class="title">✨ Advanced AI Medical Assistant</div>', unsafe_allow_html=True)
     handle_chat()
+
+    # FINAL AUDIO RENDER (Handles TTS persistence)
+    if "to_speak" in st.session_state and st.session_state["to_speak"]:
+        text_to_say = st.session_state.pop("to_speak")
+        speak_text(text_to_say)
 
 if __name__ == "__main__":
     main()
