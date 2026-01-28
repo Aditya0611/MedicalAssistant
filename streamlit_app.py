@@ -109,7 +109,7 @@ def speak_text(text):
 def normalize_input(text):
     if not text: return ""
     text = text.lower().strip()
-    word_to_digit = {"one": "1", "book": "1", "two": "2", "reschedule": "2", "three": "3", "cancel": "3", "four": "4", "medical": "4"}
+    word_to_digit = {"one": "1", "book": "1", "two": "2", "reschedule": "2", "three": "3", "cancel": "3", "four": "4", "medical": "4", "five": "5"}
     for word, digit in word_to_digit.items():
         if word in text: return digit
     digits = re.findall(r'\d+', text)
@@ -176,9 +176,13 @@ def handle_chat():
         
         # Display Cards
         st.markdown(f'''
-            <div class="dashboard-item" style="color: white;">
-                <div style="font-size: 0.8rem; color: #94a3b8; text-transform: uppercase;">Patient Name</div>
+            <div class="dashboard-item" style="color: white; padding: 15px;">
+                <div style="font-size: 0.75rem; color: #94a3b8; text-transform: uppercase;">Patient Name</div>
                 <div style="font-size: 1.1rem; font-weight: 600; color: #ffffff;">{det.get("name", "---")}</div>
+            </div>
+            <div class="dashboard-item" style="color: white; padding: 15px;">
+                <div style="font-size: 0.75rem; color: #94a3b8; text-transform: uppercase;">Patient Email</div>
+                <div style="font-size: 0.95rem; font-weight: 500; color: #ffffff; word-break: break-all;">{det.get("email", "---")}</div>
             </div>
         ''', unsafe_allow_html=True)
         
@@ -307,11 +311,31 @@ def handle_chat():
                 st.session_state["messages"].append({"role": "assistant", "content": "Select doctor:\n" + "\n".join([f"{i+1}. {d}" for i, d in enumerate(docs)])})
                 st.rerun()
         elif step == "select_doctor":
-            try:
-                idx = int(normalize_input(user_input)) - 1
-                docs = st.session_state["appointment_details"].get("docs", [])
-                if 0 <= idx < len(docs): st.session_state["appointment_details"]["selected_doctor"] = docs[idx]; st.session_state["step"] = get_next_missing_field(); ask_step_question(st.session_state["step"]); st.rerun()
-            except: st.error("Select a number.")
+            docs = st.session_state["appointment_details"].get("docs", [])
+            idx = None
+            norm = normalize_input(user_input)
+            
+            # 1. Try numeric matching
+            if norm.isdigit():
+                i = int(norm) - 1
+                if 0 <= i < len(docs):
+                    idx = i
+
+            # 2. Try name matching
+            if idx is None:
+                user_low = user_input.lower()
+                for i, d in enumerate(docs):
+                    if d.lower() in user_low or user_low in d.lower().replace("dr. ", ""):
+                        idx = i
+                        break
+            
+            if idx is not None:
+                st.session_state["appointment_details"]["selected_doctor"] = docs[idx]
+                st.session_state["step"] = get_next_missing_field()
+                ask_step_question(st.session_state["step"])
+                st.rerun()
+            else:
+                st.error(f"Please say the number (1-{len(docs)}) or the doctor's name.")
         elif step == "appointment_date":
             d = parse_date(user_input)
             if not d:
