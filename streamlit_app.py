@@ -162,22 +162,12 @@ def handle_chat():
         st.error(f"🚨 Connection Error: {db_error}")
         st.stop()
 
-    # 1. SIDEBAR - PATIENT PROFILE
-    with st.sidebar:
-        st.markdown('<div style="text-align: center; padding: 20px;"><h2 style="color: #6366f1; font-family: \'Outfit\', sans-serif;">🏥 Patient Dashboard</h2></div>', unsafe_allow_html=True)
-        
-        # --- VOICE RECORDER MOVED TO TOP FOR MOBILE ---
-        st.markdown('<div style="background: rgba(31, 41, 55, 0.4); padding: 15px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); margin-bottom: 20px;"><div class="assistant-header" style="font-size: 0.75rem; margin-bottom: 10px; text-align: center;">🤖 AI Voice Assistant</div>', unsafe_allow_html=True)
-        audio = mic_recorder(start_prompt="🔴 Start Recording", stop_prompt="✅ Stop & Process", key=f"rec_{st.session_state['audio_key_index']}")
-        st.markdown('</div>', unsafe_allow_html=True)
-        if audio:
-            curr_aid = hashlib.md5(audio['bytes']).hexdigest()
-            if st.session_state.get("last_audio_id") != curr_aid:
-                with st.spinner("Analyzing..."):
-                    txt = voice_utils.transcribe_audio(audio['bytes'])
-                    if txt:
-                        st.session_state["pending_input"] = txt; st.session_state["last_audio_id"] = curr_aid; st.session_state["audio_key_index"] += 1; st.rerun()
+    # Create Main Columns (Left for Chat, Right for Dashboard)
+    col_chat, col_dash = st.columns([1.8, 1])
 
+    # 1. RIGHT SECTION - PATIENT PROFILE
+    with col_dash:
+        st.markdown('<div style="text-align: center; padding: 20px;"><h2 style="color: #6366f1; font-family: \'Outfit\', sans-serif;">🏥 Patient Dashboard</h2></div>', unsafe_allow_html=True)
         det = st.session_state["appointment_details"]
         
         # Display Cards
@@ -188,9 +178,10 @@ def handle_chat():
             </div>
         ''', unsafe_allow_html=True)
         
-        c1, c2 = st.columns(2)
-        with c1: st.markdown(f'<div class="dashboard-item" style="padding: 12px; color: white;"><div style="font-size: 0.7rem; color: #94a3b8; text-transform: uppercase;">Age</div><div style="color: white;">{det.get("age", "--")}</div></div>', unsafe_allow_html=True)
-        with c2: st.markdown(f'<div class="dashboard-item" style="padding: 12px; color: white;"><div style="font-size: 0.7rem; color: #94a3b8; text-transform: uppercase;">Gender</div><div style="color: white;">{det.get("gender", "--")}</div></div>', unsafe_allow_html=True)
+        # Grid for cards
+        sc1, sc2 = st.columns(2)
+        with sc1: st.markdown(f'<div class="dashboard-item" style="padding: 12px; color: white;"><div style="font-size: 0.7rem; color: #94a3b8; text-transform: uppercase;">Age</div><div style="color: white;">{det.get("age", "--")}</div></div>', unsafe_allow_html=True)
+        with sc2: st.markdown(f'<div class="dashboard-item" style="padding: 12px; color: white;"><div style="font-size: 0.7rem; color: #94a3b8; text-transform: uppercase;">Gender</div><div style="color: white;">{det.get("gender", "--")}</div></div>', unsafe_allow_html=True)
         
         st.markdown(f'<div class="dashboard-item" style="border-left-color: #818cf8; color: white;"><div style="font-size: 0.8rem; color: #94a3b8; text-transform: uppercase;">Medical Specialist</div><div style="color: #a5b4fc; font-weight: 600;">{det.get("selected_doctor", "Awaiting Analysis...")}</div></div>', unsafe_allow_html=True)
         st.markdown(f'<div class="dashboard-item" style="color: white;"><div style="font-size: 0.8rem; color: #94a3b8; text-transform: uppercase;">Appointment</div><div style="color: white;">📅 {det.get("appointment_date", "Not Set")}</div><div style="color: white;">🕒 {det.get("appointment_time", "Not Set")}</div></div>', unsafe_allow_html=True)
@@ -198,26 +189,35 @@ def handle_chat():
         if st.button("Reset Session", use_container_width=True):
             st.session_state["messages"] = []; st.session_state["appointment_details"] = {}; st.session_state["step"] = None; st.rerun()
 
-    # 2. CHAT HISTORY
-    for m in st.session_state["messages"]:
-        with st.chat_message(m["role"]): st.write(m["content"])
+    with col_chat:
+        # 2. CHAT HISTORY
+        for m in st.session_state["messages"]:
+            with st.chat_message(m["role"]): st.write(m["content"])
 
-    # 3. INITIAL GREETING (If app just started)
-    if st.session_state["step"] is None and not st.session_state["messages"]:
-        welcome_msg = "Welcome! I'm your Medical Assistant. How can I help you today?"
-        options_msg = "1. Book Appointment\n2. Reschedule\n3. Cancel\n4. Medical Info\n5. Exit"
-        st.session_state["messages"].append({"role": "assistant", "content": welcome_msg})
-        st.session_state["messages"].append({"role": "assistant", "content": options_msg})
-        st.session_state["step"] = "options"
-        speak_text(welcome_msg)
-        st.rerun()
+        # 3. INITIAL GREETING (If app just started)
+        if st.session_state["step"] is None and not st.session_state["messages"]:
+            welcome_msg = "Welcome! I'm your Medical Assistant. How can I help you today?"
+            options_msg = "1. Book Appointment\n2. Reschedule\n3. Cancel\n4. Medical Info\n5. Exit"
+            st.session_state["messages"].append({"role": "assistant", "content": welcome_msg})
+            st.session_state["messages"].append({"role": "assistant", "content": options_msg})
+            st.session_state["step"] = "options"
+            speak_text(welcome_msg)
+            st.rerun()
 
-    # 4. VOICE COMPONENT (RESIZED FOR MAIN FLOW IF NEEDED)
-    # Note: Already handled in Sidebar above, but keeping a placeholder or optional floating one
-    pass
+        # 4. VOICE COMPONENT (ALWAYS ABOVE CHAT INPUT)
+        st.markdown('<div style="background: rgba(31, 41, 55, 0.4); padding: 15px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); margin-top: 20px; max-width: 400px; margin-left: auto; margin-right: auto;"><div class="assistant-header" style="font-size: 0.75rem; margin-bottom: 10px; text-align: center;">🤖 AI Voice Assistant</div>', unsafe_allow_html=True)
+        audio = mic_recorder(start_prompt="🔴 Start Recording", stop_prompt="✅ Stop & Process", key=f"rec_{st.session_state['audio_key_index']}")
+        st.markdown('</div>', unsafe_allow_html=True)
+        if audio:
+            curr_aid = hashlib.md5(audio['bytes']).hexdigest()
+            if st.session_state.get("last_audio_id") != curr_aid:
+                with st.spinner("Analyzing..."):
+                    txt = voice_utils.transcribe_audio(audio['bytes'])
+                    if txt:
+                        st.session_state["pending_input"] = txt; st.session_state["last_audio_id"] = curr_aid; st.session_state["audio_key_index"] += 1; st.rerun()
 
-    # 5. INPUT HANDLING
-    user_input = st.chat_input("Type or say anything...")
+        # 5. INPUT HANDLING (Inside col_chat)
+        user_input = st.chat_input("Type or say anything...")
     if st.session_state.get("pending_input"):
         user_input = st.session_state.pop("pending_input")
 
@@ -333,7 +333,7 @@ Hospital Management Team"""
                 speak_text(msg); st.session_state["step"] = None; st.session_state["appointment_details"] = {}; st.rerun()
 
 def main():
-    st.set_page_config(page_title="Medical Assistant", page_icon="🏥", initial_sidebar_state="expanded")
+    st.set_page_config(page_title="Medical Assistant", page_icon="🏥", initial_sidebar_state="collapsed", layout="wide")
     inject_custom_css()
     st.markdown('<div class="title">✨ Advanced AI Medical Assistant</div>', unsafe_allow_html=True)
     handle_chat()
