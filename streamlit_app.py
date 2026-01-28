@@ -46,15 +46,7 @@ def send_email(to_email, subject, body):
         st.error(f"Error sending email: {e}")
 
 def validate_mobile(mobile):
-    # Check if exactly 10 digits and only digits
-    return bool(re.match(r'^\d{10}$', mobile))
-
-def validate_name(name):
-    if not name or len(name.strip()) < 2:
-        return False
-    if name[0].isdigit():
-        return False
-    return True
+    return re.match(r'^\d{10}$', mobile) is not None
 
 def parse_date(date_str):
     for fmt in ("%Y-%m-%d", "%d-%m-%Y", "%m/%d/%Y", "%d/%m/%Y"):
@@ -99,7 +91,7 @@ def speak_text(text):
             with open(tmp_path, "rb") as f:
                 data = f.read()
                 b64 = base64.b64encode(data).decode()
-                # Use a unique key for the audio element to force re-render if needed
+                # Use style="display:none" to hide the audio player
                 md = f'<audio autoplay="true" style="display:none;"><source src="data:audio/mp3;base64,{b64}" type="audio/mp3"></audio>'
                 st.markdown(md, unsafe_allow_html=True)
         finally:
@@ -134,24 +126,23 @@ def is_complex_input(text, current_step=None):
 
 def ask_step_question(step):
     questions = {
-        "name": "What is your full name?",
-        "email": "What is your email address?",
-        "mobile": "What is your mobile number? Please speak only digits.",
-        "age": "What is your age?",
-        "gender": "What is your gender? Male, Female, or Transgender?",
-        "symptoms": "Please describe the symptoms you are experiencing.",
-        "appointment_date": "On which date would you like to visit?",
-        "appointment_time": "At what time would you prefer your appointment?",
-        "confirm_appointment": "Do you want to confirm this booking? Say yes or no."
+        "name": "What's your full name?",
+        "email": "What's your email address?",
+        "mobile": "What's your mobile number?",
+        "age": "What's your age?",
+        "gender": "What's your gender? (Male, Female, or Transgender)",
+        "symptoms": "What symptoms are you having?",
+        "appointment_date": "When would you like to visit?",
+        "appointment_time": "What time?",
+        "confirm_appointment": "Ready to book?"
     }
     msg = questions.get(step)
     if msg and (not st.session_state["messages"] or st.session_state["messages"][-1]["content"] != msg):
         st.session_state["messages"].append({"role": "assistant", "content": msg})
         st.session_state["to_speak"] = msg
-        # Remove st.rerun() from here if present to allow immediate rendering
 
 def inject_custom_css():
-    css = """<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet"><style>@keyframes meshGradient { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }@keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.4); transform: scale(1); } 70% { box-shadow: 0 0 0 20px rgba(99, 102, 241, 0); transform: scale(1.05); } 100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0); transform: scale(1); } }.stApp { background-color: #030712; background-image: radial-gradient(circle at 20% 20%, rgba(79, 70, 229, 0.15) 0% , transparent 50%), radial-gradient(circle at 80% 80%, rgba(99, 102, 241, 0.15) 0%, transparent 50%), radial-gradient(circle at 50% 50%, rgba(31, 41, 55, 0.2) 0%, transparent 70%); background-size: 200% 200%; animation: meshGradient 20s ease infinite; background-attachment: fixed; font-family: 'Inter', sans-serif; }.title { font-family: 'Outfit', sans-serif; font-size: clamp(28px, 5vw, 46px); font-weight: 700; background: linear-gradient(135deg, #ffffff 0%, #818cf8 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-align: center; padding: 20px 10px 40px; filter: drop-shadow(0 4px 12px rgba(0,0,0,0.4)); }.stChatMessage { border-radius: 24px !important; padding: 1.2rem !important; border: 1px solid rgba(255, 255, 255, 0.1) !important; background: rgba(15, 23, 42, 0.8) !important; backdrop-filter: blur(30px); margin-bottom: 1.2rem !important; } /* UNIVERSAL HIDE FOR ALL OVERLAPPING TEXT AND LABELS */ [data-testid="stChatMessage"] div:first-child, [data-testid="stChatMessage"] header, [data-testid="stChatMessage"] div[class*="Name"], .stChatMessage [data-testid="stChatMessageAvatar"] + div > div:first-child { display: none !important; font-size: 0 !important; visibility: hidden !important; height: 0 !important; } .stChatMessage p, .stChatMessage li, .stChatMessage span, .stChatMessage div { color: #ffffff !important; font-family: 'Inter', sans-serif !important; font-size: 1rem !important; line-height: 1.6 !important; }.dashboard-item { background: rgba(31, 41, 55, 0.6); padding: 20px; border-radius: 20px; margin-bottom: 15px; border-left: 5px solid #6366f1; transition: 0.3s; }.dashboard-item:hover { transform: translateY(-2px); background: rgba(31, 41, 55, 0.8); }.assistant-header { color: #a5b4fc !important; font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 1.2rem; letter-spacing: 2px; margin-bottom: 20px; text-transform: uppercase; }.stMicRecorder button { background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%) !important; color: white !important; padding: 12px 30px !important; border-radius: 100px !important; font-family: 'Outfit', sans-serif !important; font-weight: 700 !important; font-size: 1rem !important; text-transform: uppercase !important; letter-spacing: 2px !important; transition: 0.4s all cubic-bezier(0.175, 0.885, 0.32, 1.275) !important; cursor: pointer !important; width: 100% !important; } .stMicRecorder button [data-recording="true"] { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important; animation: pulse 1.5s infinite !important; }@media (max-width: 900px) { [data-testid="column"] { width: 100% !important; flex: 1 1 100% !important; } }@media (max-width: 768px) { .stChatMessage { padding: 1rem !important; border-radius: 16px !important; } .dashboard-item { padding: 15px !important; } }div[data-testid="stChatInput"] { background-color: rgba(255, 255, 255, 0.95) !important; border: 2px solid #6366f1 !important; border-radius: 20px !important; }#MainMenu, header, footer {visibility: hidden;}</style>"""
+    css = """<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet"><style>@keyframes meshGradient { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }@keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.4); transform: scale(1); } 70% { box-shadow: 0 0 0 20px rgba(99, 102, 241, 0); transform: scale(1.05); } 100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0); transform: scale(1); } }.stApp { background-color: #030712; background-image: radial-gradient(circle at 20% 20%, rgba(79, 70, 229, 0.15) 0% , transparent 50%), radial-gradient(circle at 80% 80%, rgba(99, 102, 241, 0.15) 0%, transparent 50%), radial-gradient(circle at 50% 50%, rgba(31, 41, 55, 0.2) 0%, transparent 70%); background-size: 200% 200%; animation: meshGradient 20s ease infinite; background-attachment: fixed; font-family: 'Inter', sans-serif; }.title { font-family: 'Outfit', sans-serif; font-size: clamp(28px, 5vw, 46px); font-weight: 700; background: linear-gradient(135deg, #ffffff 0%, #818cf8 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-align: center; padding: 20px 10px 40px; filter: drop-shadow(0 4px 12px rgba(0,0,0,0.4)); }.stChatMessage { border-radius: 24px !important; padding: 1.2rem !important; border: 1px solid rgba(255, 255, 255, 0.1) !important; background: rgba(15, 23, 42, 0.8) !important; backdrop-filter: blur(30px); margin-bottom: 1.2rem !important; } /* BRUTE FORCE HIDE ALL LABELS AND OVERLAPS (SMART_TOY) */ [data-testid="stChatMessage"] div:first-child, [data-testid="stChatMessage"] header, [data-testid="stChatMessage"] div[class*="Name"], .stChatMessage [data-testid="stChatMessageAvatar"] + div > div:first-child { display: none !important; font-size: 0 !important; visibility: hidden !important; height: 0 !important; margin: 0 !important; padding: 0 !important; } .stChatMessage p, .stChatMessage li, .stChatMessage span, .stChatMessage div { color: #ffffff !important; font-family: 'Inter', sans-serif !important; font-size: 1rem !important; line-height: 1.6 !important; }.dashboard-item { background: rgba(31, 41, 55, 0.6); padding: 20px; border-radius: 20px; margin-bottom: 15px; border-left: 5px solid #6366f1; transition: 0.3s; }.dashboard-item:hover { transform: translateY(-2px); background: rgba(31, 41, 55, 0.8); }.assistant-header { color: #a5b4fc !important; font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 1.2rem; letter-spacing: 2px; margin-bottom: 20px; text-transform: uppercase; }.stMicRecorder button { background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%) !important; color: white !important; padding: 12px 30px !important; border-radius: 100px !important; font-family: 'Outfit', sans-serif !important; font-weight: 700 !important; font-size: 1rem !important; text-transform: uppercase !important; letter-spacing: 2px !important; transition: 0.4s all cubic-bezier(0.175, 0.885, 0.32, 1.275) !important; cursor: pointer !important; width: 100% !important; } .stMicRecorder button [data-recording="true"] { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important; animation: pulse 1.5s infinite !important; }@media (max-width: 900px) { [data-testid="column"] { width: 100% !important; flex: 1 1 100% !important; } }@media (max-width: 768px) { .stChatMessage { padding: 1rem !important; border-radius: 16px !important; } .dashboard-item { padding: 15px !important; } }div[data-testid="stChatInput"] { background-color: rgba(255, 255, 255, 0.95) !important; border: 2px solid #6366f1 !important; border-radius: 20px !important; }#MainMenu, header, footer {visibility: hidden;}</style>"""
     st.markdown(css, unsafe_allow_html=True)
 
 def handle_chat():
@@ -186,7 +177,6 @@ def handle_chat():
             </div>
         ''', unsafe_allow_html=True)
         
-        # Grid for cards
         sc1, sc2 = st.columns(2)
         with sc1: st.markdown(f'<div class="dashboard-item" style="padding: 12px; color: white;"><div style="font-size: 0.7rem; color: #94a3b8; text-transform: uppercase;">Age</div><div style="color: white;">{det.get("age", "--")}</div></div>', unsafe_allow_html=True)
         with sc2: st.markdown(f'<div class="dashboard-item" style="padding: 12px; color: white;"><div style="font-size: 0.7rem; color: #94a3b8; text-transform: uppercase;">Gender</div><div style="color: white;">{det.get("gender", "--")}</div></div>', unsafe_allow_html=True)
@@ -243,10 +233,10 @@ def handle_chat():
                             st.session_state["audio_key_index"] += 1
                             st.rerun()
 
-        # 5. INPUT HANDLING (Inside col_chat)
+        # 5. INPUT HANDLING
         user_input = st.chat_input("Type or say anything...")
-    if st.session_state.get("pending_input"):
-        user_input = st.session_state.pop("pending_input")
+        if st.session_state.get("pending_input"):
+            user_input = st.session_state.pop("pending_input")
 
     if user_input:
         step = st.session_state["step"]
@@ -269,32 +259,18 @@ def handle_chat():
             elif n == "4": st.session_state["step"] = "medical_info"; st.session_state["messages"].append({"role": "assistant", "content": "What disease?"}); st.rerun()
             elif n == "5": st.session_state["messages"].append({"role": "assistant", "content": "Goodbye!"}); st.session_state["step"] = None
         elif step == "name":
-            if validate_name(user_input):
-                st.session_state["appointment_details"]["name"] = user_input
-                st.session_state["step"] = get_next_missing_field(); ask_step_question(st.session_state["step"]); st.rerun()
-            else:
-                st.error("Invalid name. Name cannot be a single alphabet or start with a numeric value.")
+            st.session_state["appointment_details"]["name"] = user_input
+            st.session_state["step"] = get_next_missing_field(); ask_step_question(st.session_state["step"]); st.rerun()
         elif step == "email":
             st.session_state["appointment_details"]["email"] = user_input.lower().replace(" ", "").strip()
             st.session_state["step"] = get_next_missing_field(); ask_step_question(st.session_state["step"]); st.rerun()
         elif step == "mobile":
-            # Strip anything that is not a digit
             c = re.sub(r'\D', '', user_input)
-            # If user entered letters, they will be stripped, but we should also check if the raw input had letters
-            if any(char.isalpha() for char in user_input):
-                st.error("Phone number must be a numeric value.")
-            elif validate_mobile(c): 
-                st.session_state["appointment_details"]["mobile"] = c
-                st.session_state["step"] = get_next_missing_field(); ask_step_question(st.session_state["step"]); st.rerun()
-            else: 
-                st.error("Invalid mobile number. Must be 10 digits.")
+            if validate_mobile(c): st.session_state["appointment_details"]["mobile"] = c; st.session_state["step"] = get_next_missing_field(); ask_step_question(st.session_state["step"]); st.rerun()
+            else: st.error("Invalid mobile number.")
         elif step == "age":
             c = re.sub(r'\D', '', user_input)
-            if c.isdigit() and int(c) > 0: 
-                st.session_state["appointment_details"]["age"] = c
-                st.session_state["step"] = get_next_missing_field(); ask_step_question(st.session_state["step"]); st.rerun()
-            else:
-                st.error("Age must be a numeric value greater than 0.")
+            if c.isdigit(): st.session_state["appointment_details"]["age"] = c; st.session_state["step"] = get_next_missing_field(); ask_step_question(st.session_state["step"]); st.rerun()
         elif step == "gender":
             g = user_input.lower()
             res = "Male" if "mal" in g or "mail" in g else "Female" if "fem" in g else "Transgender" if "trans" in g else None
@@ -305,7 +281,6 @@ def handle_chat():
                 ana = symptom_analyzer.analyze_symptom(s)
                 spec = ana["specialty"]
                 st.session_state["messages"].append({"role": "assistant", "content": f"Recommended Specialty: **{spec}**\n\n{ana['reasoning']}"})
-                # Limit to top 5 doctors to prevent data breach/overwhelming list
                 docs = doctors_by_specialty.get(spec, ["General Doctor"])[:5]
                 st.session_state["appointment_details"]["docs"] = docs
                 st.session_state["step"] = "select_doctor"
@@ -317,28 +292,19 @@ def handle_chat():
             docs = st.session_state["appointment_details"].get("docs", [])
             idx = None
             norm = normalize_input(user_input)
-            
-            # 1. Try numeric matching
             if norm.isdigit():
                 i = int(norm) - 1
-                if 0 <= i < len(docs):
-                    idx = i
-
-            # 2. Try name matching
+                if 0 <= i < len(docs): idx = i
             if idx is None:
                 user_low = user_input.lower()
                 for i, d in enumerate(docs):
                     if d.lower() in user_low or user_low in d.lower().replace("dr. ", ""):
                         idx = i
                         break
-            
             if idx is not None:
                 st.session_state["appointment_details"]["selected_doctor"] = docs[idx]
-                st.session_state["step"] = get_next_missing_field()
-                ask_step_question(st.session_state["step"])
-                st.rerun()
-            else:
-                st.error(f"Please say the number (1-{len(docs)}) or the doctor's name.")
+                st.session_state["step"] = get_next_missing_field(); ask_step_question(st.session_state["step"]); st.rerun()
+            else: st.error(f"Please say the number (1-{len(docs)}) or the doctor's name.")
         elif step == "appointment_date":
             d = parse_date(user_input)
             if not d:
@@ -358,25 +324,8 @@ def handle_chat():
                 d = st.session_state["appointment_details"]
                 res = database.add_appointment(d["email"], d["name"], d["mobile"], int(d["age"]), d["gender"], d["symptoms"], d["selected_doctor"], d["appointment_date"], d["appointment_time"])
                 id_str = f"APPT-{res.data[0]['id']}" if res.data and res.data[0].get('id') else "OK"
-                
-                # --- Send Confirmation Email ---
-                email_body = f"""Hello {d['name']},
-
-Your medical appointment has been successfully booked.
-
-Details:
-- Appointment ID: {id_str}
-- Doctor/Specialist: {d['selected_doctor']}
-- Date: {d['appointment_date']}
-- Time: {d['appointment_time']}
-- Symptoms: {d['symptoms']}
-
-Thank you for using our AI Medical Assistant. Please arrive 15 minutes early.
-
-Best Regards,
-Hospital Management Team"""
+                email_body = f"""Hello {d['name']}, your appointment has been booked. Details: ID {id_str}, Doctor {d['selected_doctor']}, Date {d['appointment_date']}, Time {d['appointment_time']}."""
                 send_email(d["email"], f"Appointment Confirmation - {id_str}", email_body)
-                
                 msg = f"Booked successfully! ID: {id_str}. Confirmation sent to your email."
                 st.session_state["messages"].append({"role": "assistant", "content": msg})
                 st.session_state["to_speak"] = msg
@@ -387,8 +336,6 @@ def main():
     inject_custom_css()
     st.markdown('<div class="title">✨ Advanced AI Medical Assistant</div>', unsafe_allow_html=True)
     handle_chat()
-
-    # FINAL AUDIO RENDER (Handles TTS persistence)
     if "to_speak" in st.session_state and st.session_state["to_speak"]:
         text_to_say = st.session_state.pop("to_speak")
         speak_text(text_to_say)
