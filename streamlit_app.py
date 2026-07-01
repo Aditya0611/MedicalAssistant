@@ -2,14 +2,12 @@ import hashlib
 import smtplib
 from datetime import datetime, timedelta
 from email.mime.text import MIMEText
-import pandas as pd
 import random
 import re
 import os
 import tempfile
 from difflib import get_close_matches
 import streamlit as st
-import kagglehub
 import database
 import calendar_utils
 import symptom_analyzer
@@ -18,17 +16,61 @@ from streamlit_mic_recorder import mic_recorder
 from gtts import gTTS
 import base64
 
-@st.cache_resource
-def load_doctor_data():
-    path = kagglehub.dataset_download("niksaurabh/doctors-speciality")
-    csv_files = [file for file in os.listdir(path) if file.endswith('.csv')]
-    if csv_files:
-        file_path = os.path.join(path, csv_files[0])
-        df = pd.read_csv(file_path)
-        return df.groupby('speciality')['Doctor\'s Name'].apply(list).to_dict()
-    return {}
-
-doctors_by_specialty = load_doctor_data()
+# Built-in doctor list by specialty — no external download needed
+doctors_by_specialty = {
+    "Primary Care Doctor": [
+        "Dr. Anjali Sharma", "Dr. Ravi Mehta", "Dr. Priya Nair",
+        "Dr. Suresh Kumar", "Dr. Neha Gupta"
+    ],
+    "Cardiologist": [
+        "Dr. Ramesh Iyer", "Dr. Sunita Reddy", "Dr. Arun Verma",
+        "Dr. Kavitha Pillai", "Dr. Deepak Joshi"
+    ],
+    "Dermatologist": [
+        "Dr. Pooja Singh", "Dr. Vikram Bose", "Dr. Anita Roy",
+        "Dr. Manish Kapoor", "Dr. Smita Desai"
+    ],
+    "Neurologist": [
+        "Dr. Sanjay Patel", "Dr. Rekha Menon", "Dr. Amit Saxena",
+        "Dr. Divya Krishnamurthy", "Dr. Ashok Rao"
+    ],
+    "Orthopedic Surgeon": [
+        "Dr. Sunil Mathur", "Dr. Lalita Choudhary", "Dr. Pramod Tiwari",
+        "Dr. Geeta Bhatt", "Dr. Harish Malhotra"
+    ],
+    "Pediatrician": [
+        "Dr. Meena Agarwal", "Dr. Rohit Bansal", "Dr. Sudha Kulkarni",
+        "Dr. Naveen Shetty", "Dr. Asha Tripathi"
+    ],
+    "Psychiatrist": [
+        "Dr. Vivek Mishra", "Dr. Tanuja Deshpande", "Dr. Kiran Yadav",
+        "Dr. Sheetal Jain", "Dr. Mohan Das"
+    ],
+    "Ear, Nose & Throat Doctor": [
+        "Dr. Rajendra Naik", "Dr. Usha Bhardwaj", "Dr. Prasad Hegde",
+        "Dr. Alka Srivastava", "Dr. Girish Pandey"
+    ],
+    "Ophthalmologist": [
+        "Dr. Vandana Ghosh", "Dr. Satish Dubey", "Dr. Indira Nambiar",
+        "Dr. Kishore Sinha", "Dr. Padma Swaminathan"
+    ],
+    "Dentist": [
+        "Dr. Sachin Shah", "Dr. Rupali More", "Dr. Dinesh Chavan",
+        "Dr. Varsha Pawar", "Dr. Nilesh Londhe"
+    ],
+    "Gastroenterologist": [
+        "Dr. Prakash Gaikwad", "Dr. Sangeeta Wagh", "Dr. Abhijeet Kulkarni",
+        "Dr. Madhuri Sathe", "Dr. Avinash Shinde"
+    ],
+    "Pulmonologist": [
+        "Dr. Hemant Thorat", "Dr. Sushma Jadhav", "Dr. Dnyaneshwar Mane",
+        "Dr. Archana Patil", "Dr. Rajesh Kadam"
+    ],
+    "Urologist": [
+        "Dr. Pravin Deshpande", "Dr. Seema Gaikwad", "Dr. Nitin Bobade",
+        "Dr. Mangal Shinde", "Dr. Makarand Muthe"
+    ],
+}
 
 def send_email(to_email, subject, body):
     sender_email = "adityaraj6112025@gmail.com"
